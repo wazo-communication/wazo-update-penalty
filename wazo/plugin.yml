@@ -1,0 +1,11 @@
+name: wazo-update-penalty
+namespace: official
+version: 1.0.0
+author: Wazo Communication inc.
+display_name: Agent Penalty
+min_wazo_version: 20.01
+tags:
+  - agent
+  - queue
+  - penalty
+homepage: http://wazo.io

@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+# Copyright 2021 The Wazo Authors  (see the AUTHORS file)
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+import sys
+
+from wazo_auth_client import Client as Auth
+from wazo_confd_client import Client as Confd
+
+
+usage = f'{sys.argv[0]} <username> <password> <queue_id> <agent_id> <penalty>'
+host = 'localhost'
+priority = 0
+try:
+    username = sys.argv[1]
+    password = sys.argv[2]
+    queue_id = int(sys.argv[3])
+    agent_id = int(sys.argv[4])
+    penalty = int(sys.argv[5])
+except (IndexError, ValueError):
+    print('Usage:', usage)
+    exit(1)
+
+
+class SDKUser:
+    def __init__(self, username, password):
+        auth = Auth(
+            host, username=username, password=password, verify_certificate=False
+        )
+        token = auth.token.new('wazo_user', expiration=60)['token']
+        self.confd = Confd(host, verify_certificate=False, token=token)
+
+
+api = SDKUser(username, password)
+
+print(f'Setting penalty {penalty} for agent {agent_id} on queue {queue_id}...')
+api.confd.queues.relations(queue_id).remove_agent_member(agent_id)
+api.confd.queues.relations(queue_id).add_agent_member(
+    agent_id, priority=priority, penalty=penalty
+)
